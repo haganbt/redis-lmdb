@@ -1,0 +1,136 @@
+# Cursor Project Setup
+
+## Commit Message Guidelines
+
+To maintain a consistent and clear commit history, please follow these guidelines for writing commit messages:
+
+- **Prefix**: Start with a prefix that indicates the type of change:
+  - `feat`: A new feature
+  - `fix`: A bug fix
+  - `chore`: Changes to the build process or auxiliary tools and libraries such as documentation generation
+  - `docs`: Documentation only changes
+  - `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+  - `refactor`: A code change that neither fixes a bug nor adds a feature
+  - `perf`: A code change that improves performance
+  - `test`: Adding missing tests or correcting existing tests
+
+- **Message Structure**: Use the following structure for commit messages:
+  - **Subject**: A short summary of the change (50 characters or less)
+  - **Body**: (Optional) A more detailed explanation of the change
+  - **Footer**: (Optional) Any references to issues or breaking changes
+
+## Testing
+
+To ensure the functionality of Redis-LMDB, we have set up unit and integration tests using Jest. These tests verify that each Redis command and the overall system behave as expected.
+
+### Running Tests
+
+1. Ensure all dependencies are installed:
+
+```bash
+pnpm install
+```
+
+2. Run the tests:
+
+```bash
+pnpm test
+```
+
+This will execute all test suites and provide feedback on the functionality of the commands.
+
+### IMPORTANT: Always Run Tests Before Committing
+
+It's critical to run the full test suite before committing any changes to ensure the code works as expected:
+
+```bash
+# Run all tests before committing
+pnpm test
+
+# If all tests pass, then commit
+git commit -m "your commit message"
+```
+
+This practice helps prevent broken code from entering the codebase and ensures all functionality remains intact.
+
+### Jest Configuration
+
+The project uses Jest for testing with the following configuration:
+
+1. **Configuration Location**: 
+   - The Jest configuration is defined in `jest.config.cjs` at the root of the project
+   - **IMPORTANT**: We use `.cjs` extension to ensure CommonJS format compatibility with Jest
+
+2. **Test Directories**:
+   - Unit tests: `tests/unit/**/*.test.js`
+   - Integration tests: `tests/integration/**/*.test.js`
+   - Performance tests: `tests/performance/**/*.test.js`
+
+3. **Running Tests**:
+   - To run all tests: `pnpm test` or `npx jest --config=jest.config.cjs`
+   - To run unit tests only: `npx jest --config=jest.config.cjs tests/unit`
+   - To run integration tests only: `npx jest --config=jest.config.cjs tests/integration`
+   - To run a specific test file: `npx jest --config=jest.config.cjs path/to/test.js`
+
+4. **Babel Configuration**:
+   - The project uses Babel for ES module transformation
+   - Configuration is in `babel.config.cjs` at the root of the project
+   - This enables ES modules to work properly with Jest tests
+
+5. **Test Timeouts**:
+   - Tests have a default timeout of 10 seconds to prevent hanging
+   - Integration tests with server operations should explicitly manage timeouts 
+
+## Code Architecture Guidelines
+
+### Avoid Global Variables
+
+Never use global variables in the codebase. Instead:
+
+1. **Use Connection-Based State**: Each client connection has its own state object (`socket.redis-lmdbState`) for maintaining transaction flags and command queues.
+
+2. **Pass State Via Parameters**: Command handlers should accept client state as their first parameter:
+   ```javascript
+   export default function command(clientState, ...otherParams) {
+     // Command implementation
+   }
+   ```
+
+3. **Encapsulate State**: Keep state contained within its proper scope to prevent race conditions and concurrency issues.
+
+This approach ensures better testability, concurrency handling, and code organization.
+
+## Using ES Modules
+
+This project uses ES modules by default. All JavaScript files should use ES module syntax (`import`/`export`) unless specifically required to be CommonJS format.
+
+### ES Module Guidelines
+
+1. **File Extensions**:
+   - Regular JavaScript files use `.js` extension with ES module syntax
+   - Configuration files that must use CommonJS format use the `.cjs` extension
+   - This includes `jest.config.cjs` and `babel.config.cjs`
+
+2. **Import/Export Syntax**:
+   - Use named exports when possible: `export function myFunction() {}`
+   - Use default exports for main module functionality: `export default class MyClass {}`
+   - Import with destructuring where appropriate: `import { function1, function2 } from './module'`
+
+3. **Testing with ES Modules**:
+   - Integration tests should properly clean up resources to prevent hanging
+   - Always disconnect Redis clients and terminate servers in `afterAll` hooks
+   - Add explicit timeouts to tests that involve async operations
+
+4. **ES Module Configuration**:
+   - Jest is configured to handle ES modules through Babel transformation
+   - The configuration handles node_modules appropriately with transformIgnorePatterns
+   - ES Module tests should avoid certain CommonJS-specific patterns (e.g., jest.mock hoisting)
+
+For more details on ES modules in the project, refer to the [testing documentation](docs/testing.md).
+
+### Configuration
+
+- **Jest**: Configured to handle ES modules using Babel for transformation.
+- **Node.js**: Ensure your Node.js version supports ES modules (v12+).
+
+For more details on using ES modules, refer to the [Node.js documentation](https://nodejs.org/api/esm.html). 

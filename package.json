@@ -1,0 +1,23 @@
+{
+  "name": "redis-lmdb",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Redis-compatible key-value store using LMDB",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "start:prod": "node --max-old-space-size=4096 src/server.js",
+    "test": "jest --config=jest.config.cjs --runInBand",
+    "test:file": "jest --config=jest.config.cjs"
+  },
+  "dependencies": {
+    "lmdb": "^2.7.3"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.26.9",
+    "@jest/globals": "^29.7.0",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "redis": "^4.5.1"
+  }
+}

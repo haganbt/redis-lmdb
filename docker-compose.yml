@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  redis-lmdb:
+    build: .
+    ports:
+      - "6379:6379"
+    volumes:
+      - /mnt/db:/data/db
+    environment:
+      - LMDB_MAP_SIZE=10737418240 # 10GB map size
+      - NODE_ENV=production
+      - LMDB_PATH=/data/db
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    sysctls:
+      - vm.max_map_count=262144
+      - vm.swappiness=10
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  redis_lmdb_data: 
